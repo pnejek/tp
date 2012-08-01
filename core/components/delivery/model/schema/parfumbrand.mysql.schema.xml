@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model package="parfumbrand" baseClass="xPDOObject" platform="mysql" defaultEngine="MyISAM" version="1.1">
+	
+	<object class="parfumbrand" table="parfum_brands" extends="xPDOObject">
+		<field key="ID" dbtype="int" precision="11" attributes="unsigned" phptype="integer" null="false" index="pk"  generated="native" />
+		<field key="NAME" dbtype="varchar" precision="255" phptype="string" null="false" />
+
+		<index alias="PRIMARY" name="PRIMARY" primary="true" unique="true" type="BTREE" >
+			<column key="ID" length="" collation="A" null="false" />
+		</index>
+	</object>
+</model>
