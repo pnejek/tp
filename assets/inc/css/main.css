@@ -1,0 +1,76 @@
+h1 {font-size: 30px !important;line-height: 36px !important;}
+
+body {
+	/*padding-top: 60px !important;*/
+	padding-bottom: 40px;
+}
+
+.navbar {position: relative;}
+.page_nav {margin-top: 50px;}
+.page_nav .prev {text-align: left;}
+.page_nav .next {text-align: right;}
+.page_nav .up {text-align: center;}
+
+#content {
+	min-height: 500px;
+}
+
+footer {
+	border-top: 1px solid #efefef;
+	margin-top: 100px;
+	padding-top: 5px;
+}
+footer .modx-logo {
+	padding-top:5px;
+	text-align:right;
+}
+footer .warehouse {
+	padding-top:5px;
+	text-align: center;
+}
+
+div.pagination {text-align:center;}
+
+.center {text-align:center;}
+.right {text-align:right;}
+.left {text-align:left;}
+
+#addrForm table {
+	margin:auto;
+}
+#addrForm th {
+	padding: 0 6px 10px 0;
+}
+
+.navbar .srv {display: inline-block; height: 24px; width: 24px; background-image: url(/inc/img/icons/login_icons.png);}
+.navbar .srv:hover {text-decoration: none;}
+
+.navbar .login_text {color: #AAA; margin: 0 10px 0 0;}
+.navbar .icons_row {padding-top:8px;height:24px;}
+
+.navbar .yandex {background-position: 0px -186px;}
+.navbar .yandex:hover {background-position: -24px -186px;}
+.navbar .vkontakte {background-position: 0px -29px;}
+.navbar .vkontakte:hover {background-position: -24px -29px;}
+.navbar .odnoklassniki {background-position: 0px -55px;}
+.navbar .odnoklassniki:hover {background-position: -24px -55px;}
+.navbar .mailru {background-position: 0px -81px;}
+.navbar .mailru:hover {background-position: -24px -81px;}
+.navbar .rambler {background-position: 0px -264px;}
+.navbar .rambler:hover {background-position: -24px -264px;}
+.navbar .google {background-position: 0px -160px;}
+.navbar .google:hover {background-position: -24px -160px;}
+.navbar .twitter {background-position: 0px -134px;}
+.navbar .twitter:hover {background-position: -24px -134px;}
+.navbar .facebook {background-position: 0px -108px;}
+.navbar .facebook:hover {background-position: -24px -108px;}
+
+
+
+ul.nav_docs .level1 {margin: 5px 0; font-size: 16px;}
+ul.nav_docs .level2 {margin: 5px 0; font-size: 14px;}
+
+.stores-grid {margin: 20px 0;}
+.stores-grid .img {text-align:center; width: 205px;}
+.stores-grid .text {text-align:justify; width: 650px; padding: 0 5px;}
+.stores-grid .link {text-align:center; width: 100px;}
