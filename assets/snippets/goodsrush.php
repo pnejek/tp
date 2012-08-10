@@ -6,8 +6,8 @@ mysql_set_charset($database_connection_charset);
 mysql_select_db ($dbase);
 if(isset($_REQUEST['id']) && is_numeric($_REQUEST['id']) ) {
 	$id = $_REQUEST['id'];
-	$document = $modx->getObject('modDocument', $id);
-	$goodName = $document->get('pagetitle');
+	$document = $modx->getObject('modDocument', $id);//получаем товар
+	$goodName = $document->get('pagetitle');//получаем название товара
 } 
 if(isset($_REQUEST['step']) && is_numeric($_REQUEST['step']) )
   $step = $_REQUEST['step'];

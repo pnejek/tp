@@ -1,5 +1,6 @@
 <?php
 if(!isset($_SESSION['modx.user.contextTokens']['mgr'])) die('Доступ запрещен.');
+//проверка авторизации 
 
 include('./core/config/config.inc.php');
 mysql_connect ($database_server, $database_user, $database_password);
@@ -265,8 +266,6 @@ switch ($step) {
 					<input type='hidden' id='savereload'  name='save' value='0' />
 					<input type='button' name='savereload' value='Сохранить и обновить' onclick='saveandreload();' /> 
 					</form>
-					
-					
 					";
 				}
 			break;
@@ -313,8 +312,7 @@ switch ($step) {
 				    			
 				    		}
 				    		$qi.=", `{$attr}`='".mysql_real_escape_string(trim($value))."'";	
-				    	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-					    
+				    	}   
 				    }
 				    mysql_query($qi) or die(mysql_error()." ".$qi);
 				    if($_REQUEST['save']) {
@@ -371,10 +369,6 @@ switch ($step) {
 							<meta http-equiv="refresh" content="0; url=/service/productmanagement.html?step=2&action=view&id='.$id.'" >';
 						die();
 				    }
-			    /*echo "<h1>Изменения сохранены. Окно закроется само.</h1>
-				<script type='text/javascript'>
-				window.setTimeout(function () {window.parent.Ext.getCmp('windowgrid2').close()}, 1000);
-				</script>";*/
 				echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 					  <meta http-equiv="refresh" content="0; url=/service/productmanagement.html?step=3&id='.$id.'" >';
 			  }
@@ -405,7 +399,6 @@ switch ($step) {
 			    $attrsarray['attr'.$attrs['ATTR_ID']] = $attrs['ATTR_ID'];
 			    $attrsfile['attr'.$attrs['ATTR_ID']] = $attrs['FILE'];
 			  }
-		  
 			  $qc = "SELECT `ID` FROM `{$tbl_full_prefix}producttype_{$tid}` WHERE `PID`={$id}";
 			  foreach ($_REQUEST['attrs'] as $attr) {
 			    if(isset($attrsarray[$attr])) {
@@ -435,8 +428,7 @@ switch ($step) {
 			    			}
 			    		} else {
 			    			$qi.=", `{$attr}`='{$_REQUEST[$attr]}'";
-			    		}
-					    
+			    		}    
 				    }
 				    mysql_query($qi) or die(mysql_error()." ".$qi);  
 		  	  	} 
@@ -608,9 +600,7 @@ switch ($step) {
 				  $output.="</table>";
 				}
 				$output.="<p><a href='/service/goodsrush.html?step=1&action=view'><<-- Rush-режим. Этап 1.</a></p>";
-		    
-			break;
-			
+			break;	
 		}
 	break;
 }
