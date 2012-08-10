@@ -1,5 +1,6 @@
 <?php
 if(!isset($_SESSION['modx.user.contextTokens']['mgr'])) die('Доступ запрещен.');
+//проверка авторизации 
 
 include('./core/config/config.inc.php');
 mysql_connect ($database_server, $database_user, $database_password);
