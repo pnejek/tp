@@ -257,6 +257,7 @@ switch ($step) {
 							}
 						}
 					}
+					
 					$output.="</table>
 					<input type='hidden' name='step' value='2' />
 					<input type='hidden' name='action' value='edit' />

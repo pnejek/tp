@@ -241,12 +241,27 @@ switch ($table) {
   case 'attr':
   	switch ($action) {
       case 'view':
+	    $output.= "
+		<script>
+		function checkattralias(string){
+		  	var re = /[\w\s\d.]+/i;
+			var index = string.search (re);
+			if (index > -1) {
+				
+				$('#aliaserror').html('Недопустимые символы в строке. <br /> Разрешены: латинский алфавит, \'.\', \' \', \'_\'.');
+				$('#aliaserror').show();
+			} else {
+				$('#aliaserror').hide();
+			}		
+		}
+		</script>
+		";
 	  	switch($mode) {
 		  	case 'new':
 				$output.="<form action='/service/typesmanagement.html' method='POST'>
-				<table border='0'><tr>
+				<table border='0' id='aliastable'><tr>
 				<td>Введите наименование атрибута:</td><td><input type='text' name='name' /></td></tr>
-				<tr><td>Алиас (краткое название в английской раскладке):</td><td><input type='text' name='alias' /></td></tr>
+				<tr><td>Алиас (краткое название в английской раскладке):</td><td><input type='text' name='alias' onchange='checkattralias(this.value)'/><div id='aliaserror' style='display:none;'></div></td></tr>
 				</table>
 				<input type='hidden' name='table' value='attr' />
 				<input type='hidden' name='action' value='new' />";
@@ -314,8 +329,8 @@ switch ($table) {
 				$resinfo = mysql_query("SELECT * FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$atid);
 				$info = mysql_fetch_array($resinfo);   
 				$output.="<form action='/service/typesmanagement.html' method='POST'>
-				<table border='0'><tr>
-				<td>Наименование атрибута:</td><td><input type='text' name='name' value='".$info['NAME']."' /></td></tr>
+				<table border='0' id='aliastable'><tr>
+				<td>Наименование атрибута:</td><td><input type='text' name='name' value='".$info['NAME']."' /></td><div id='aliaserror' style='display:none;'></div></tr>
 				<tr><td>Алиас (краткое название в английской раскладке):</td>
 				<td><input type='text' name='alias' value='".$info['ALIAS']."'/></td></tr>
 				</table>
