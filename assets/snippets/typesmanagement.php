@@ -6,8 +6,10 @@ mysql_set_charset($database_connection_charset);
 mysql_select_db ($dbase);
 if(isset($_REQUEST['tid']) && is_numeric($_REQUEST['tid']) )
   $tid = $_REQUEST['tid'];
+  else $tid=0;
 if(isset($_REQUEST['atid']) && is_numeric($_REQUEST['atid']) )
   $atid = $_REQUEST['atid'];
+  else $atid=0;
 if(isset($_REQUEST['xrid']) && is_numeric($_REQUEST['xrid']) )
   $xrid = $_REQUEST['xrid'];
 else $xrid = 0;
@@ -244,13 +246,14 @@ switch ($table) {
 	    $output.= "
 		<script>
 		function checkattralias(string){
-		  	var re = /[\w\s\d.]+/i;
+		  	var re = /[^\w\s\d.]+/i;
 			var index = string.search (re);
 			if (index > -1) {
-				
+				$('#aliassubmit').hide();
 				$('#aliaserror').html('Недопустимые символы в строке. <br /> Разрешены: латинский алфавит, \'.\', \' \', \'_\'.');
 				$('#aliaserror').show();
 			} else {
+				$('#aliassubmit').show();
 				$('#aliaserror').hide();
 			}		
 		}
@@ -320,7 +323,7 @@ switch ($table) {
 			";
 		    $output.="<input type='hidden' name='tid' value='{$tid}' />";
 		  }
-				$output.="<input type='submit' name='submit' value='Создать' /></form>
+				$output.="<input id='aliassubmit' type='submit' name='submit' value='Создать' /></form>
 				<a href='/service/typesmanagement.html'>Назад</a>
 		  		";
 			break;
@@ -330,15 +333,15 @@ switch ($table) {
 				$info = mysql_fetch_array($resinfo);   
 				$output.="<form action='/service/typesmanagement.html' method='POST'>
 				<table border='0' id='aliastable'><tr>
-				<td>Наименование атрибута:</td><td><input type='text' name='name' value='".$info['NAME']."' /></td><div id='aliaserror' style='display:none;'></div></tr>
+				<td>Наименование атрибута:</td><td><input type='text' name='name' value='".$info['NAME']."' /></td></tr>
 				<tr><td>Алиас (краткое название в английской раскладке):</td>
-				<td><input type='text' name='alias' value='".$info['ALIAS']."'/></td></tr>
+				<td><input type='text' name='alias' value='".$info['ALIAS']."' onchange='checkattralias(this.value)'/><div id='aliaserror' style='display:none;'></div></td></tr>
 				</table>
 				
 				<input type='hidden' name='table' value='attr' />
 				<input type='hidden' name='action' value='edit' />
 				<input type='hidden' name='atid' value='{$atid}' />
-				<input type='submit' name='submit' value='Изменить' /></form>
+				<input type='submit' id='aliassubmit' name='submit' value='Изменить' /></form>
 				<a href='/service/typesmanagement.html'>Назад</a>
 				";
 		}
