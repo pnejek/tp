@@ -1,5 +1,5 @@
 <?php
-if(!isset($_SESSION['modx.user.contextTokens']['mgr'])) die('Доступ запрещен.');
+if(!isset($_SESSION['modx.user.contextTokens']['mgr'])) die('Р”РѕСЃС‚СѓРї Р·Р°РїСЂРµС‰РµРЅ.');
 include('./core/config/config.inc.php');
 mysql_connect ($database_server, $database_user, $database_password);
 mysql_set_charset($database_connection_charset);
