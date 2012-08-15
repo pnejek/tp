@@ -349,9 +349,13 @@ switch ($table) {
 	  case 'new':
 		$name = mysql_real_escape_string($_REQUEST['name']);
 		$alias = mysql_real_escape_string($_REQUEST['alias']);
+		
   		mysql_query ("INSERT INTO `{$tbl_full_prefix}attributes` SET `NAME`='{$name}', `ALIAS`='{$alias}'");
 		$atid = mysql_insert_id();
 		if($tid) {
+			if(preg_match("/[^\w\s\d.]+/i",$alias)) {
+			die('Недопустимые символы в alias. <a href="/service/typesmanagement.html?action=new&table=attr&tid='.$tid.'">Вернуться назад.</a>');
+		}
 		  $manual ='';
 		  $static ='';
 		  $type = '';
@@ -420,6 +424,9 @@ switch ($table) {
       case 'edit':
       	$name = mysql_real_escape_string($_REQUEST['name']);
 		$alias = mysql_real_escape_string($_REQUEST['alias']);
+		if(preg_match("/[^\w\s\d.]+/i",$alias)) {
+			die('Недопустимые символы в alias. <a href="/service/typesmanagement.html?action=old&table=attr&atid='.$atid.'">Вернуться назад.</a>');
+		}
   		mysql_query("UPDATE `{$tbl_full_prefix}attributes` SET `NAME`='{$name}', `ALIAS`='{$alias}' WHERE `ID`=".$atid);
 		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta http-equiv="refresh" content="0; url=/service/typesmanagement.html" >';
