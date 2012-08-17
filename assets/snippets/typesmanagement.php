@@ -349,13 +349,16 @@ switch ($table) {
 	  case 'new':
 		$name = mysql_real_escape_string($_REQUEST['name']);
 		$alias = mysql_real_escape_string($_REQUEST['alias']);
-		
+		if(preg_match("/[^\w\s\d.]+/i",$alias)) {
+		  if($tid) {
+			die('Недопустимые символы в alias. <a href="/service/typesmanagement.html?action=new&table=attr&tid='.$tid.'">Вернуться назад.</a>');  
+		  } else {
+			die('Недопустимые символы в alias. <a href="/service/typesmanagement.html?action=new&table=attr">Вернуться назад.</a>');
+		  }
+		}
   		mysql_query ("INSERT INTO `{$tbl_full_prefix}attributes` SET `NAME`='{$name}', `ALIAS`='{$alias}'");
 		$atid = mysql_insert_id();
 		if($tid) {
-			if(preg_match("/[^\w\s\d.]+/i",$alias)) {
-			die('Недопустимые символы в alias. <a href="/service/typesmanagement.html?action=new&table=attr&tid='.$tid.'">Вернуться назад.</a>');
-		}
 		  $manual ='';
 		  $static ='';
 		  $type = '';
@@ -402,12 +405,12 @@ switch ($table) {
 		  }
 		  mysql_query("INSERT INTO `{$tbl_full_prefix}type_attr_xref` SET `TYPE_ID`={$tid}, `ATTR_ID`={$atid}{$manual}{$static}{$typeq}{$cssq}{$multiselect}{$dir}{$fileq}");
 		  if ($_REQUEST['static']) {
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD COLUMN `attr{$atid}` {$type} NOT NULL DEFAULT  ''");
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD FULLTEXT (`attr{$atid}`)");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD COLUMN `{$alias}` {$type} NOT NULL DEFAULT  ''");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD FULLTEXT (`{$alias}`)");
 		  }
 		  else {
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD COLUMN `attr{$atid}` {$type} NOT NULL DEFAULT  ''");
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD FULLTEXT (`attr{$atid}`)");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD COLUMN `{$alias}` {$type} NOT NULL DEFAULT  ''");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD FULLTEXT (`{$alias}`)");
 		  }
 		  if($_REQUEST['manual']) {
 			  echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -427,11 +430,32 @@ switch ($table) {
 		if(preg_match("/[^\w\s\d.]+/i",$alias)) {
 			die('Недопустимые символы в alias. <a href="/service/typesmanagement.html?action=old&table=attr&atid='.$atid.'">Вернуться назад.</a>');
 		}
+		//получение старого alias атрибута
+		$resalias = mysql_query("SELECT `ALIAS` FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$atid);
+		$aliaso = mysql_fetch_array($resalias);
+		$aliasnameold = $aliaso['ALIAS'];
+		
   		mysql_query("UPDATE `{$tbl_full_prefix}attributes` SET `NAME`='{$name}', `ALIAS`='{$alias}' WHERE `ID`=".$atid);
+		//обновление названия колонок в таблицах продуктов
+		$rescheck = mysql_query("SELECT `ID`, `TYPE_ID`, `STATIC`, `MANUAL` FROM `{$tbl_full_prefix}type_attr_xref` WHERE `ATTR_ID`=".$atid);
+		if(mysql_num_rows($rescheck)>0) {
+		  while ($check = mysql_fetch_array($rescheck)){
+			if ($check['STATIC']) {
+				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_".$check['TYPE_ID']."_static` CHANGE `{$aliasnameold}` `{$alias}`");
+			}
+			else {
+				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_".$check['TYPE_ID']."` CHANGE `{$aliasnameold}` `{$alias}`");
+			}
+		  }	
+		}
 		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta http-equiv="refresh" content="0; url=/service/typesmanagement.html" >';
   	  break;
       case 'delete':
+	    //получение alias атрибута
+		$resalias = mysql_query("SELECT `ALIAS` FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$atid);
+		$alias = mysql_fetch_array($resalias);
+		$aliasname = $alias['ALIAS'];
 	  	mysql_query("DELETE FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$atid);
 	   	$rescheck = mysql_query("SELECT `ID`, `TYPE_ID`, `STATIC`, `MANUAL` FROM `{$tbl_full_prefix}type_attr_xref` WHERE `ATTR_ID`=".$atid);
 		if(mysql_num_rows($rescheck)>0) {
@@ -440,10 +464,10 @@ switch ($table) {
 				mysql_query("DELETE FROM `{$tbl_full_prefix}available_values` WHERE `TA_XREF_ID`=".$check['ID']);
 			}
 			if ($check['STATIC']) {
-				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_".$check['TYPE_ID']."_static` DROP `attr{$atid}`");
+				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_".$check['TYPE_ID']."_static` DROP `{$aliasname}`");
 			}
 			else {
-				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_".$check['TYPE_ID']."` DROP `attr{$atid}`");
+				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_".$check['TYPE_ID']."` DROP `{$aliasname}`");
 			}
 			
 			mysql_query("DELETE FROM `{$tbl_full_prefix}type_attr_xref` WHERE `ID`=".$check['ID']." AND `ATTR_ID`=".$atid);
@@ -601,18 +625,21 @@ switch ($table) {
 	    }
 	    mysql_query("INSERT INTO `{$tbl_full_prefix}type_attr_xref` SET `TYPE_ID`={$tid}, `ATTR_ID`={$atid}{$manual}{$static}{$typeq}{$cssq}{$multiselect}{$dir}{$fileq}") 
 	      or $modx->log(modX::LOG_LEVEL_ERROR, "ошибка привязки атрибута ".mysql_error());
+		$resalias = mysql_query("SELECT `ALIAS` FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$atid);
+		$alias = mysql_fetch_array($resalias);
+		$aliasname = $alias['ALIAS'];
 	    if($static) {
 			$resexist = mysql_query("SHOW COLUMNS FROM `{$tbl_full_prefix}producttype_{$tid}_static` LIKE 'attr{$atid}'");
 			if(mysql_num_rows($resexist)==0){
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD COLUMN `attr{$atid}` {$type} NOT NULL DEFAULT  ''");
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD FULLTEXT (`attr{$atid}`)");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD COLUMN `{$aliasname}` {$type} NOT NULL DEFAULT  ''");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` ADD FULLTEXT (`{$aliasname}`)");
 			}
 		}
 		else {
 			$resexist = mysql_query("SHOW COLUMNS FROM `{$tbl_full_prefix}producttype_{$tid}` LIKE 'attr{$atid}'");
 			if(mysql_num_rows($resexist)==0){
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD COLUMN `attr{$atid}` {$type} NOT NULL DEFAULT  ''");
-			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD FULLTEXT (`attr{$atid}`)");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD COLUMN `{$aliasname}` {$type} NOT NULL DEFAULT  ''");
+			  mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` ADD FULLTEXT (`{$aliasname}`)");
 			}
 		}
 	    if($manual) {
@@ -625,21 +652,24 @@ switch ($table) {
 	    }
   	  break;
       case 'delete':
+	  	  $resalias = mysql_query("SELECT `ALIAS` FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$atid);
+		  $alias = mysql_fetch_array($resalias);
+		  $aliasname = $alias['ALIAS'];
 		  $rescheck = mysql_query("SELECT `ID`, `MANUAL`, `STATIC` FROM `{$tbl_full_prefix}type_attr_xref` WHERE `TYPE_ID`={$tid} AND `ATTR_ID`=".$atid);
 		  $check = mysql_fetch_array($rescheck);
 		  if (!$check['MANUAL']) {
 			mysql_query("DELETE FROM `{$tbl_full_prefix}available_values` WHERE `TA_XREF_ID`=".$check['ID']);
 		  }
 		  if ($check['STATIC']) {
-			  $resexist = mysql_query("SHOW COLUMNS FROM `{$tbl_full_prefix}producttype_{$tid}_static` LIKE 'attr{$atid}'");
+			  $resexist = mysql_query("SHOW COLUMNS FROM `{$tbl_full_prefix}producttype_{$tid}_static` LIKE '{$aliasname}'");
 			  if(mysql_num_rows($resexist)){
-				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` DROP `attr{$atid}`");
+				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}_static` DROP `{$aliasname}`");
 			  }
 		  }
 		  else {
-			  $resexist = mysql_query("SHOW COLUMNS FROM `{$tbl_full_prefix}producttype_{$tid}` LIKE 'attr{$atid}'");
+			  $resexist = mysql_query("SHOW COLUMNS FROM `{$tbl_full_prefix}producttype_{$tid}` LIKE '{$aliasname}'");
 			  if(mysql_num_rows($resexist)){
-				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` DROP `attr{$atid}`");
+				mysql_query("ALTER TABLE `{$tbl_full_prefix}producttype_{$tid}` DROP `{$aliasname}`");
 			  }
 		  }
 		  mysql_query("DELETE FROM `{$tbl_full_prefix}type_attr_xref` WHERE `TYPE_ID`={$tid} AND `ATTR_ID`={$atid}");

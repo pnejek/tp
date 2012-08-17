@@ -84,7 +84,8 @@ switch ($step) {
 				$resattrs = mysql_query("
 					SELECT `{$tbl_full_prefix}type_attr_xref`.*, 
 						   `{$tbl_full_prefix}attributes`.`NAME`, 
-					       `{$tbl_full_prefix}attributes`.`ID` as atid  
+					       `{$tbl_full_prefix}attributes`.`ID` as atid, 
+						   `{$tbl_full_prefix}attributes`.`ALIAS` as atalias  
 					FROM `{$tbl_full_prefix}type_attr_xref` 
 					RIGHT JOIN `{$tbl_full_prefix}attributes` 
 					   ON `{$tbl_full_prefix}attributes`.`ID`=`{$tbl_full_prefix}type_attr_xref`.`ATTR_ID` 
@@ -93,8 +94,7 @@ switch ($step) {
 				    ORDER BY `{$tbl_full_prefix}type_attr_xref`.`SORTORDER` ASC
 				") or die(mysql_error());
 				if (mysql_num_rows($resattrs)>0) {
-					$output.="<script> </script>
-					
+					$output.="					
 					<form action='/service/productmanagement.html' method='POST' id='staticform' enctype='multipart/form-data'>
 					<input type='hidden' name='MAX_FILE_SIZE' value='3000000' />
 					<table border='0'><caption>Статичные атрибуты</caption>";
@@ -104,7 +104,7 @@ switch ($step) {
 						} else {
 							$class = '';
 						}
-						$resprv = mysql_query("SELECT `attr{$attrs['atid']}` as pratval 
+						$resprv = mysql_query("SELECT `{$attrs['atalias']}` as pratval 
 											   FROM `{$tbl_full_prefix}producttype_{$tid}_static` 
 											   WHERE `PID`={$id}");
 						if (mysql_num_rows($resprv)>0) {
@@ -281,13 +281,15 @@ switch ($step) {
 			   $qi = "INSERT INTO `{$tbl_full_prefix}producttype_{$tid}_static` SET `PID`={$id}";
 				    foreach ($_REQUEST['attrs'] as $attr) {
 				    	$attrid = substr($attr, 4);
-				    	$resattr = mysql_query("SELECT `MULTISELECT`, `FILE`, `FILE_BEHAVIOR` FROM `{$tbl_full_prefix}type_attr_xref`
-				    	WHERE `TYPE_ID`={$tid} AND `ATTR_ID`={$attrid}");
+				    	$resattr = mysql_query("SELECT `{$tbl_full_prefix}type_attr_xref`.`MULTISELECT`, `{$tbl_full_prefix}type_attr_xref`.`FILE`, 
+						`{$tbl_full_prefix}type_attr_xref`.`FILE_BEHAVIOR`, `{$tbl_full_prefix}attributes`.`ALIAS` as sttralias FROM `{$tbl_full_prefix}type_attr_xref` 
+				    	RIGHT JOIN `{$tbl_full_prefix}attributes` ON `{$tbl_full_prefix}attributes`.`ID` = `{$tbl_full_prefix}type_attr_xref`.`ATTR_ID` 
+						WHERE `TYPE_ID`={$tid} AND `ATTR_ID`={$attrid}"); 
 				    	$attrMS = mysql_fetch_array($resattr);
 				    	if ($attrMS['MULTISELECT']) {
 				    		if(!empty($_REQUEST[$attr])){
 					    		//echo "{$_REQUEST[$attr]} - array";
-					    		$qi.=", `{$attr}`=''";
+					    		$qi.=", `{$attrMS['attralias']}`=''";
 					    		foreach($_REQUEST[$attr] as $attrMV) {
 					    			$value = mysql_real_escape_string(trim($attrMV));
 					    			mysql_query("INSERT INTO `{$tbl_full_prefix}static_multivalues` 
@@ -312,7 +314,7 @@ switch ($step) {
 				    			}
 				    			
 				    		}
-				    		$qi.=", `{$attr}`='".mysql_real_escape_string(trim($value))."'";	
+				    		$qi.=", `{$attrMS['attralias']}`='".mysql_real_escape_string(trim($value))."'";	
 				    	}   
 				    }
 				    mysql_query($qi) or die(mysql_error()." ".$qi);
@@ -330,13 +332,15 @@ switch ($step) {
 			   $qi = "UPDATE `{$tbl_full_prefix}producttype_{$tid}_static` SET `PID`={$id}";
 				    foreach ($_REQUEST['attrs'] as $attr) {
 						$attrid = substr($attr, 4);
-				    	$resattr = mysql_query("SELECT `MULTISELECT` FROM `{$tbl_full_prefix}type_attr_xref`
+				    	$resattr = mysql_query("SELECT `{$tbl_full_prefix}type_attr_xref`.`MULTISELECT`, `{$tbl_full_prefix}attributes`.`ALIAS` as sttralias 
+						FROM `{$tbl_full_prefix}type_attr_xref` 
+						RIGHT JOIN `{$tbl_full_prefix}attributes` ON `{$tbl_full_prefix}attributes`.`ID` = `{$tbl_full_prefix}type_attr_xref`.`ATTR_ID`
 				    	WHERE `TYPE_ID`={$tid} AND `ATTR_ID`={$attrid}");
 				    	$attrMS = mysql_fetch_array($resattr);
 				    	if ($attrMS['MULTISELECT']) {
 				    		if(!empty($_REQUEST[$attr])){
 				    			mysql_query("DELETE FROM `{$tbl_full_prefix}static_multivalues` WHERE `PID`={$id} AND `ATTRID`={$attrid}");
-					    		$qi.=", `{$attr}`=''";
+					    		$qi.=", `{$attrMS['attralias']}`=''";
 					    		foreach($_REQUEST[$attr] as $attrMV) {
 					    			mysql_query("INSERT INTO `{$tbl_full_prefix}static_multivalues` 
 					    						 SET `PID`={$id}, `ATTRID`={$attrid}, `VALUE`='{$attrMV}'");
@@ -360,7 +364,7 @@ switch ($step) {
 				    			}
 				    			
 				    		}
-				    		$qi.=", `{$attr}`='".mysql_real_escape_string(trim($value))."'";	
+				    		$qi.=", `{$attrMS['attralias']}`='".mysql_real_escape_string(trim($value))."'";	
 				    	} 
 				    }
 				    $qi.=" WHERE `PID`={$id}";
@@ -402,13 +406,17 @@ switch ($step) {
 			  }
 			  $qc = "SELECT `ID` FROM `{$tbl_full_prefix}producttype_{$tid}` WHERE `PID`={$id}";
 			  foreach ($_REQUEST['attrs'] as $attr) {
-			    if(isset($attrsarray[$attr])) {
-			      if($attrsfile[$attr]==1){
-			      	continue;
-			      } else {
-				    $qc.=" AND `{$attr}`='{$_REQUEST[$attr]}'";
+				  $attrid = substr($attr, 4);
+				  $resalias = mysql_query("SELECT `ALIAS` FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$attrid);
+				  $alias = mysql_fetch_array($resalias);
+				  $aliasname = $alias['ALIAS'];
+			      if(isset($attrsarray[$attr])) {
+			        if($attrsfile[$attr]==1){
+			      	  continue;
+			        } else {
+				      $qc.=" AND `{$aliasname}`='{$_REQUEST[$attr]}'";
+			        }
 			      }
-			    }
 			  }
 		  	  $resqc = mysql_query($qc) or die(mysql_error()." ".$qc);
 		  	  if(mysql_num_rows($resqc)==0) {
@@ -416,6 +424,10 @@ switch ($step) {
 		  	  	while ($wh = mysql_fetch_array($reswh)){
 			  	  	$qi = "INSERT INTO `{$tbl_full_prefix}producttype_{$tid}` SET `PID`={$id}, `WID`={$wh['id']}";
 				    foreach ($_REQUEST['attrs'] as $attr) {
+						$attrid = substr($attr, 4);
+				  		$resalias = mysql_query("SELECT `ALIAS` FROM `{$tbl_full_prefix}attributes` WHERE `ID`=".$attrid);
+				  		$alias = mysql_fetch_array($resalias);
+				  		$aliasname = $alias['ALIAS'];
 			    		if($attrsfile[$attr]==1){
 				    		if(!empty($_FILES[$attr]['tmp_name'])) {
 			    				$ext = substr($_FILES[$attr]['name'], -3);
@@ -425,10 +437,10 @@ switch ($step) {
 			    				if(!copy($_FILES[$attr]['tmp_name'], "./".$newFileFullPath)) {
 									echo("Ошибка загрузки файла ".$_FILES[$attr]['name']." для атрибута".$attr);
 	 							}
-	 							$qi.=", `{$attr}`='{$newFileFullPath}'";
+	 							$qi.=", `{$aliasname}`='{$newFileFullPath}'";
 			    			}
 			    		} else {
-			    			$qi.=", `{$attr}`='{$_REQUEST[$attr]}'";
+			    			$qi.=", `{$aliasname}`='{$_REQUEST[$attr]}'";
 			    		}    
 				    }
 				    mysql_query($qi) or die(mysql_error()." ".$qi);  
@@ -446,14 +458,17 @@ switch ($step) {
 			case 'delete' :
 			    $vid = is_numeric($_REQUEST['vid'])?$_REQUEST['vid']:0;
 			    /*находим атрибуты с файлами, чтобы удалить содержимое*/
-				$resfattr = mysql_query("SELECT `ATTR_ID`, `STATIC` FROM `{$tbl_full_prefix}type_attr_xref` WHERE `TYPE_ID`={$tid} AND `FILE`=1 AND `STATIC`=0");
+				$resfattr = mysql_query("SELECT `{$tbl_full_prefix}type_attr_xref`.`STATIC`, `{$tbl_full_prefix}attributes`.`ALIAS` 
+				FROM `{$tbl_full_prefix}type_attr_xref` 
+				RIGHT JOIN `{$tbl_full_prefix}attributes` ON `{$tbl_full_prefix}attributes`.`ID` = `{$tbl_full_prefix}type_attr_xref`.`ATTR_ID` 
+				WHERE `TYPE_ID`={$tid} AND `FILE`=1 AND `STATIC`=0");
 				if(mysql_num_rows($resfattr)>0) {
 					while ($fattr = mysql_fetch_array($resfattr)) {
-					  $resffrompid = mysql_query("SELECT `attr{$fattr['ATTR_ID']}` FROM `{$tbl_full_prefix}producttype_{$tid}` WHERE `ID`={$vid}");
+					  $resffrompid = mysql_query("SELECT `{$fattr['ALIAS']}` FROM `{$tbl_full_prefix}producttype_{$tid}` WHERE `ID`={$vid}");
 					  if(mysql_num_rows($resffrompid)>0) {
 					    while($filefrompid = mysql_fetch_array($resffrompid)) {
-						  if(!empty($filefrompid['attr'.$fattr['ATTR_ID']])) {
-							unlink(MODX_BASE_PATH.$filefrompid['attr'.$fattr['ATTR_ID']]);
+						  if(!empty($filefrompid[$fattr['ALIAS']])) {
+							unlink(MODX_BASE_PATH.$filefrompid[$fattr['ALIAS']]);
 						  }
 						}
 					  }
