@@ -481,7 +481,7 @@ switch ($step) {
 			default:
 				echo "<h2>Этап 3. Варианты товаров</h2><br />Товар: {$goodName}";
 				$resattrs = mysql_query("SELECT `{$tbl_full_prefix}type_attr_xref`.*, `{$tbl_full_prefix}attributes`.`NAME`, 
-				`{$tbl_full_prefix}attributes`.`ID` as atid  
+				`{$tbl_full_prefix}attributes`.`ID` as atid, `{$tbl_full_prefix}attributes`.`ALIAS` as attralias  
 				FROM `{$tbl_full_prefix}type_attr_xref` 
 				RIGHT JOIN `{$tbl_full_prefix}attributes` ON `{$tbl_full_prefix}attributes`.`ID`=`{$tbl_full_prefix}type_attr_xref`.`ATTR_ID` 
 				WHERE `{$tbl_full_prefix}type_attr_xref`.`TYPE_ID` = {$tid} AND `{$tbl_full_prefix}type_attr_xref`.`STATIC`=0 
@@ -545,6 +545,7 @@ switch ($step) {
 				while ($ats = mysql_fetch_array($qats)) {
 					$atids[] = $ats['ID'];
 					$atnames[] = $ats['NAME'];
+					$ataliases[] = $ats['ALIAS'];
 				  	$atmanual[] = $ats['MANUAL'];
 				  	$atfile[]=$ats['FILE'];
 				  	$atfileb[]=$ats['FILE_BEHAVIOR'];
@@ -590,21 +591,21 @@ switch ($step) {
 				    foreach ($atids as $key=>$attrid) {
 				      if($atmanual[$key]!=1) {
 					$resavval = mysql_query("SELECT `VALUE` FROM `{$tbl_full_prefix}available_values` 
-					  WHERE `ID`=".$products['attr'.$attrid]);
+					  WHERE `ID`=".$products[$ataliases[$key]]);
 					if(mysql_num_rows($resavval)!=0){
 					  $avval = mysql_fetch_array($resavval);
 					  $output.="<td>".nl2br($avval['VALUE'])."</td>";
 					}
 				      }
 				      else {
-				      	if($atfile[$key]==1 && !empty($products['attr'.$attrid])) {
+				      	if($atfile[$key]==1 && !empty($products[$ataliases[$key]])) {
 				      		if(($atfileb[$key]=='mainimage' || $atfileb[$key]=='otherimage')) {
-				      			$output.="<td><img src='/{$products['attr'.$attrid]}' height='40' /></td>";
+				      			$output.="<td><img src='/{$products[$ataliases[$key]]}' height='40' /></td>";
 				      		} else {
-				      			$output.="<td><a href='/{$products['attr'.$attrid]}' height='40' target='_blank'>Файл</a></td>";
+				      			$output.="<td><a href='/{$products[$ataliases[$key]]}' height='40' target='_blank'>Файл</a></td>";
 				      		}
 				      	} else {
-				      		$output.="<td>".nl2br($products['attr'.$attrid])."</td>";
+				      		$output.="<td>".nl2br($products[$ataliases[$key]])."</td>";
 				      	}
 					  	
 				      }
