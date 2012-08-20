@@ -118,6 +118,11 @@ switch ($step) {
 			$document->set('template', 2 );
 			$document->set('parent', $cat );
 			$document->save();
+			$uri = $modx->makeUrl($id);
+			$lastslash = strrpos($uri, '/');
+			$pagename = substr($uri, $lastslash+1);
+			$pagename = $id.'-'.$pagename;
+			$respagename = substr_replace($uri,$pagename, $lastslash+1 );
 			$document->set('uri',$modx->makeUrl($id));
 			$document->save();
 			echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">

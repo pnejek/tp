@@ -282,7 +282,7 @@ switch ($step) {
 				    foreach ($_REQUEST['attrs'] as $attr) {
 				    	$attrid = substr($attr, 4);
 				    	$resattr = mysql_query("SELECT `{$tbl_full_prefix}type_attr_xref`.`MULTISELECT`, `{$tbl_full_prefix}type_attr_xref`.`FILE`, 
-						`{$tbl_full_prefix}type_attr_xref`.`FILE_BEHAVIOR`, `{$tbl_full_prefix}attributes`.`ALIAS` as sttralias FROM `{$tbl_full_prefix}type_attr_xref` 
+						`{$tbl_full_prefix}type_attr_xref`.`FILE_BEHAVIOR`, `{$tbl_full_prefix}attributes`.`ALIAS` as attralias FROM `{$tbl_full_prefix}type_attr_xref` 
 				    	RIGHT JOIN `{$tbl_full_prefix}attributes` ON `{$tbl_full_prefix}attributes`.`ID` = `{$tbl_full_prefix}type_attr_xref`.`ATTR_ID` 
 						WHERE `TYPE_ID`={$tid} AND `ATTR_ID`={$attrid}"); 
 				    	$attrMS = mysql_fetch_array($resattr);
@@ -332,7 +332,7 @@ switch ($step) {
 			   $qi = "UPDATE `{$tbl_full_prefix}producttype_{$tid}_static` SET `PID`={$id}";
 				    foreach ($_REQUEST['attrs'] as $attr) {
 						$attrid = substr($attr, 4);
-				    	$resattr = mysql_query("SELECT `{$tbl_full_prefix}type_attr_xref`.`MULTISELECT`, `{$tbl_full_prefix}attributes`.`ALIAS` as sttralias 
+				    	$resattr = mysql_query("SELECT `{$tbl_full_prefix}type_attr_xref`.`MULTISELECT`, `{$tbl_full_prefix}attributes`.`ALIAS` as attralias 
 						FROM `{$tbl_full_prefix}type_attr_xref` 
 						RIGHT JOIN `{$tbl_full_prefix}attributes` ON `{$tbl_full_prefix}attributes`.`ID` = `{$tbl_full_prefix}type_attr_xref`.`ATTR_ID`
 				    	WHERE `TYPE_ID`={$tid} AND `ATTR_ID`={$attrid}");
